@@ -26,7 +26,7 @@ jobs:
     steps:
 
       - name: checkout 'release'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: 'release'
           fetch-depth: 0
@@ -62,7 +62,7 @@ jobs:
         env:
           VERSION_TAG: ${{ github.event.inputs.version_tag }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: source
           path: |
@@ -85,7 +85,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: source
 
@@ -94,14 +94,14 @@ jobs:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: ${{ success() && matrix.os == 'ubuntu-latest' }}
         with:
           name: build
           path: dist/BetterDiscord-Linux.AppImage
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: ${{ success() && matrix.os == 'windows-latest' }}
         with:
           name: build
@@ -111,7 +111,7 @@ jobs:
       - if: ${{ success() && matrix.os == 'macos-latest' }}
         run: mv -f dist/BetterDiscord-*-mac.zip dist/BetterDiscord-Mac.zip
       - if: ${{ success() && matrix.os == 'macos-latest' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: dist/BetterDiscord-Mac.zip
@@ -129,12 +129,12 @@ jobs:
     steps:
 
       - name: checkout 'development'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: 'development'
           token: ${{ secrets.CI_PAT }}
           clean: false
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: source
 
@@ -163,7 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.push_changes.outputs.sha_1 }}
 
@@ -172,7 +172,7 @@ jobs:
         env:
           GITHUB_TOKEN_STUPIDO: ${{ secrets.CI_PAT }}
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: build
 
