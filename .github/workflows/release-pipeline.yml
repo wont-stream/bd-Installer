@@ -1,6 +1,6 @@
-name: Release Pipeline
+name: development Pipeline
 
-# Execution needs to be triggered manually at https://github.com/BetterDiscord/Installer/actions/workflows/release-pipeline.yml.
+# Execution needs to be triggered manually at https://github.com/BetterDiscord/Installer/actions/workflows/development-pipeline.yml.
 
 # This pipeline is pretty hard-coded and will deliver
 # identical results no matter the branch it's run against.
@@ -9,14 +9,14 @@ on:
   workflow_dispatch:
     inputs:
       version_tag:
-        description: The version label to be used for this release
+        description: The version label to be used for this development
         required: true
 
-concurrency: release
+concurrency: development
 
 jobs:
 
-  # Checkout 'release', merge 'development', bump version, upload source artifact.
+  # Checkout 'development', merge 'development', bump version, upload source artifact.
   prepare:
     name: Prepare Repo
     runs-on: ubuntu-latest
@@ -25,10 +25,10 @@ jobs:
       new_version: ${{ steps.version_bump.outputs.new_version }}
     steps:
 
-      - name: checkout 'release'
+      - name: checkout 'development'
         uses: actions/checkout@v4
         with:
-          ref: 'release'
+          ref: 'development'
           fetch-depth: 0
 
       - name: merge 'development' and bump version
@@ -55,7 +55,7 @@ jobs:
             let newVersion = "v" + version;
             console.log(`::set-output name=old_version::${oldVersion}`);
             console.log(`::set-output name=new_version::${newVersion}`);
-            fs.writeFileSync("commit-message", `CI: Prepare release '${newVersion}`);
+            fs.writeFileSync("commit-message", `CI: Prepare development '${newVersion}`);
           EOF
           git add package.json
           git commit -F commit-message
@@ -70,7 +70,7 @@ jobs:
             !.git/config
 
   # Download source artifact, build, upload build artifact.
-  # Runs once on each release platform.
+  # Runs once on each development platform.
   build:
     name: Build
     needs: prepare
@@ -117,7 +117,7 @@ jobs:
           path: dist/BetterDiscord-Mac.zip
           if-no-files-found: error
 
-  # Download source artifact, push to 'release'.
+  # Download source artifact, push to 'development'.
   push_changes:
     name: Push Version Bump
     needs:
@@ -138,14 +138,14 @@ jobs:
         with:
           name: source
 
-      - name: merge 'release' and push everything
+      - name: merge 'development' and push everything
         id: push
         run: |
           git checkout 'development'
           git config --global user.name "BetterDiscord CI"
           git config --global user.email "BetterDiscord@users.noreply.github.com"
-          # TODO: rebase 'development' on 'release'
-          git merge --ff-only --no-commit 'release'
+          # TODO: rebase 'development' on 'development'
+          git merge --ff-only --no-commit 'development'
           SHA1=$(git rev-parse --verify HEAD)
           git tag "$NEW_VERSION" "$SHA1"
           git push --all && git push --tags
@@ -153,9 +153,9 @@ jobs:
         env:
           NEW_VERSION: ${{ needs.prepare.outputs.new_version }}
 
-  # Download build artifact, do github release.
+  # Download build artifact, do github development.
   publish:
-    name: Draft Release
+    name: Draft development
     needs:
       - prepare
       - build
@@ -176,9 +176,9 @@ jobs:
         with:
           name: build
 
-      - name: upload release draft
+      - name: upload development draft
         run: |
-          gh release create "$NEW_VERSION" --draft --title "$NEW_VERSION" --target "$SHA1" --generate-notes \
+          gh development create "$NEW_VERSION" --draft --title "$NEW_VERSION" --target "$SHA1" --generate-notes \
             "BetterDiscord-Linux.AppImage#Linux (AppImage)" \
             "BetterDiscord-Mac.zip#Mac OS (Zip)" \
             "BetterDiscord-Windows.exe#Windows (Exe)"
@@ -187,4 +187,4 @@ jobs:
           OLD_VERSION: ${{ needs.prepare.outputs.old_version }}
           NEW_VERSION: ${{ needs.prepare.outputs.new_version }}
           NAKED_INPUT_VERSION_TAG: ${{ github.event.inputs.version_tag }}
-          RELEASE_NOTES_TEMPLATE_LOCATION: .github/RELEASE_TEMPLATE.md
+          development_NOTES_TEMPLATE_LOCATION: .github/development_TEMPLATE.md
