@@ -31,37 +31,6 @@ jobs:
           ref: 'development'
           fetch-depth: 0
 
-      - name: merge 'development' and bump version
-        id: version_bump
-        run: |
-          git config --global user.name "BetterDiscord CI"
-          git config --global user.email "BetterDiscord@users.noreply.github.com"
-          git merge --no-ff --no-commit 'origin/development'
-          node << 'EOF'
-            const fs = require("fs");
-            const packageJson = JSON.parse(fs.readFileSync("package.json", "utf-8"));
-            let version = process.env.VERSION_TAG;
-            if (/^v\d/.test(version)) version = version.slice(1);
-            if (
-              !/^\d/.test(version) || version.includes("-") && !/[a-z\d]$/.test(version)
-            ) throw new Error(`Bad version tag: '${process.env.VERSION_TAG}'`);
-            if (version.includes("-") && !/\.\d+$/.test(version)) version += ".0";
-            version = version.replace(/\.+/g, ".");
-            fs.writeFileSync("package.json", JSON.stringify({
-              ...packageJson,
-              version,
-            }, null, 2) + "\n");
-            let oldVersion = "v" + packageJson.version;
-            let newVersion = "v" + version;
-            console.log(`::set-output name=old_version::${oldVersion}`);
-            console.log(`::set-output name=new_version::${newVersion}`);
-            fs.writeFileSync("commit-message", `CI: Prepare development '${newVersion}`);
-          EOF
-          git add package.json
-          git commit -F commit-message
-        env:
-          VERSION_TAG: ${{ github.event.inputs.version_tag }}
-
       - uses: actions/upload-artifact@v4
         with:
           name: source
